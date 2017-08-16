@@ -19,6 +19,8 @@ package com.vincentganneau.recyclerview.ui.widget;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.util.AttributeSet;
@@ -534,5 +536,143 @@ public class ChoiceModeRecyclerView extends RecyclerView {
         }
 
         requestLayout();
+    }
+
+
+    // Setters
+    /**
+     * Defines the choice behavior for the {@link MultiChoiceRecyclerView}. By default, {@link MultiChoiceRecyclerView} does not have any choice behavior ({@code CHOICE_MODE_NONE}). By setting the choice mode to {@code CHOICE_MODE_MULTIPLE}, the {@link MultiChoiceRecyclerView} allows any number of items to be chosen.
+     * @param choiceMode either {@code CHOICE_MODE_NONE} or {@code CHOICE_MODE_MULTIPLE}.
+     */
+    public void setChoiceMode(int choiceMode) {
+        if (choiceMode == CHOICE_MODE_NONE || choiceMode == CHOICE_MODE_MULTIPLE) {
+            mChoiceMode = choiceMode;
+            if (mChoiceMode != CHOICE_MODE_NONE && mCheckStates == null) {
+                mCheckStates = new SparseBooleanArray(0);
+            }
+        }
+    }
+
+    /**
+     * Clears any choices previously set.
+     */
+    public void clearChoices() {
+        if (mCheckStates != null) {
+            mCheckStates.clear();
+        }
+        for (int i = 0; i < getChildCount(); i++) {
+            ViewCompat.setActivated(getChildAt(i), false);
+        }
+        mCheckedItemCount = 0;
+    }
+
+    /**
+     * Sets the checked state of the specified position. The is only valid if the choice mode has been set to {@code CHOICE_MODE_MULTIPLE}.
+     * @param view the view at the specified position.
+     * @param position the item whose checked state is to be checked.
+     * @param value the new checked state for the item.
+     */
+    public void setItemChecked(View view, int position, boolean value) {
+        if (mChoiceMode == CHOICE_MODE_NONE) {
+            return;
+        }
+        boolean oldValue = mCheckStates.get(position);
+        mCheckStates.put(position, value);
+        if (oldValue != value) {
+            if (value) {
+                mCheckedItemCount++;
+            } else {
+                mCheckedItemCount--;
+            }
+            ViewCompat.setActivated(view, value);
+        }
+    }
+
+    // Getters
+    /**
+     * Returns the number of items currently selected. This will only be valid if the choice mode is not {@code CHOICE_MODE_NONE} (default).
+     * @return the number of items currently selected.
+     */
+    public int getCheckedItemCount() {
+        return mCheckedItemCount;
+    }
+
+    /**
+     * Returns the checked state of the specified position. The result is only valid if the choice mode has been set to {@code CHOICE_MODE_MULTIPLE}.
+     * @param position the item whose checked state to return.
+     * @return the item's checked state or <b>false</b> if choice mode is invalid.
+     */
+    public boolean isItemChecked(int position) {
+        return mChoiceMode != CHOICE_MODE_NONE && mCheckStates != null && mCheckStates.get(position);
+    }
+
+    /**
+     * Returns the set of checked items in the {@link MultiChoiceRecyclerView}. The result is only valid if the choice mode has not been set to {@code CHOICE_MODE_NONE} (default).
+     * @return the set of checked items.
+     */
+    public SparseBooleanArray getCheckedItemPositions() {
+        if (mChoiceMode != CHOICE_MODE_NONE) {
+            return mCheckStates;
+        }
+        return null;
+    }
+
+    // State
+    static class SavedState extends BaseSavedState {
+
+        // States
+        int checkedItemCount;
+        SparseBooleanArray checkStates;
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private SavedState(Parcel source) {
+            super(source);
+            checkedItemCount = source.readInt();
+            checkStates = source.readSparseBooleanArray();
+        }
+
+        @Override
+        public void writeToParcel(@NonNull Parcel dest, int flags) {
+            super.writeToParcel(dest, flags);
+            dest.writeInt(checkedItemCount);
+            dest.writeSparseBooleanArray(checkStates);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
+
+            @Override
+            public SavedState createFromParcel(Parcel source) {
+                return new SavedState(source);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        final Parcelable superState = super.onSaveInstanceState();
+        final SavedState savedState = new SavedState(superState);
+        if (mCheckStates != null) {
+            savedState.checkStates = mCheckStates.clone();
+        }
+        savedState.checkedItemCount = mCheckedItemCount;
+        return savedState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        final SavedState savedState = (SavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+        if (savedState.checkStates != null) {
+            mCheckStates = savedState.checkStates;
+        }
+        mCheckedItemCount = savedState.checkedItemCount;
     }
 }
