@@ -104,10 +104,7 @@ public class ChoiceModeRecyclerView extends RecyclerView {
      * @see #setChoiceMode(int)
      */
     public boolean isItemChecked(int position) {
-        if (mChoiceMode != AbsListView.CHOICE_MODE_NONE && mCheckStates != null) {
-            return mCheckStates.get(position);
-        }
-        return false;
+        return mChoiceMode != AbsListView.CHOICE_MODE_NONE && mCheckStates != null && mCheckStates.get(position);
     }
 
     /**
@@ -223,7 +220,7 @@ public class ChoiceModeRecyclerView extends RecyclerView {
         }
         mCheckedItemCount = 0;
     }
-    
+
     /*
     static class SavedState extends BaseSavedState {
         long selectedId;
