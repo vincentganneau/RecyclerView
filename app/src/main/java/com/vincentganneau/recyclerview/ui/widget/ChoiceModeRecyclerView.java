@@ -17,17 +17,10 @@
 package com.vincentganneau.recyclerview.ui.widget;
 
 import android.content.Context;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
 import android.util.AttributeSet;
 import android.util.SparseBooleanArray;
-import android.view.View;
 import android.widget.AbsListView;
-import android.widget.EditText;
 
 /**
  * {@link RecyclerView} subclass that implements choice behavior.
@@ -78,144 +71,120 @@ public class ChoiceModeRecyclerView extends RecyclerView {
         super(context, attrs, defStyleAttr);
     }
 
-    // Setters
-    @Override
-    public void setAdapter(Adapter adapter) {
-        if (adapter != null) {
-            mAdapterHasStableIds = mAdapter.hasStableIds();
-            if (mChoiceMode != CHOICE_MODE_NONE && mAdapterHasStableIds &&
-                    mCheckedIdStates == null) {
-                mCheckedIdStates = new LongSparseArray<Integer>();
-            }
-        }
-
-        if (mCheckStates != null) {
-            mCheckStates.clear();
-        }
-
-        if (mCheckedIdStates != null) {
-            mCheckedIdStates.clear();
-        }
-        super.setAdapter();
+    // Getters
+    /**
+     * Returns the current choice mode.
+     * @return the current choice mode.
+     * @see #setChoiceMode(int)
+     */
+    public int getChoiceMode() {
+        return mChoiceMode;
     }
 
     /**
-     * Returns the number of items currently selected. This will only be valid
-     * if the choice mode is not {@link #CHOICE_MODE_NONE} (default).
-     *
-     * <p>To determine the specific items that are currently selected, use one of
-     * the <code>getChecked*</code> methods.
-     *
-     * @return The number of items currently selected
-     *
+     * Returns the number of items currently selected.
+     * <p>
+     * This will only be valid if the choice mode is not {@link AbsListView#CHOICE_MODE_NONE} (default).
+     * </p>
+     * @return the number of items currently selected.
      * @see #getCheckedItemPosition()
      * @see #getCheckedItemPositions()
-     * @see #getCheckedItemIds()
      */
     public int getCheckedItemCount() {
         return mCheckedItemCount;
     }
 
     /**
-     * Returns the checked state of the specified position. The result is only
-     * valid if the choice mode has been set to {@link #CHOICE_MODE_SINGLE}
-     * or {@link #CHOICE_MODE_MULTIPLE}.
-     *
-     * @param position The item whose checked state to return
-     * @return The item's checked state or <code>false</code> if choice mode
-     *         is invalid
-     *
+     * Returns the checked state of the specified position.
+     * <p>
+     * The result is only valid if the choice mode has been set to {@link AbsListView#CHOICE_MODE_SINGLE} or {@link AbsListView#CHOICE_MODE_MULTIPLE}.
+     * </p>
+     * @param position the item whose checked state to return.
+     * @return the item's checked state or <code>false</code> if choice mode is invalid.
      * @see #setChoiceMode(int)
      */
     public boolean isItemChecked(int position) {
-        if (mChoiceMode != CHOICE_MODE_NONE && mCheckStates != null) {
+        if (mChoiceMode != AbsListView.CHOICE_MODE_NONE && mCheckStates != null) {
             return mCheckStates.get(position);
         }
-
         return false;
     }
 
     /**
-     * Returns the currently checked item. The result is only valid if the choice
-     * mode has been set to {@link #CHOICE_MODE_SINGLE}.
-     *
-     * @return The position of the currently checked item or
-     *         {@link #INVALID_POSITION} if nothing is selected
-     *
+     * Returns the currently checked item.
+     * <p>
+     * The result is only valid if the choice mode has been set to {@link AbsListView#CHOICE_MODE_SINGLE}.
+     * </p>
+     * @return the position of the currently checked item or {@link AbsListView#INVALID_POSITION} if nothing is selected.
      * @see #setChoiceMode(int)
      */
     public int getCheckedItemPosition() {
-        if (mChoiceMode == CHOICE_MODE_SINGLE && mCheckStates != null && mCheckStates.size() == 1) {
+        if (mChoiceMode == AbsListView.CHOICE_MODE_SINGLE && mCheckStates != null && mCheckStates.size() == 1) {
             return mCheckStates.keyAt(0);
         }
-
-        return INVALID_POSITION;
+        return AbsListView.INVALID_POSITION;
     }
 
     /**
-     * Returns the set of checked items in the list. The result is only valid if
-     * the choice mode has not been set to {@link #CHOICE_MODE_NONE}.
-     *
-     * @return  A SparseBooleanArray which will return true for each call to
-     *          get(int position) where position is a checked position in the
-     *          list and false otherwise, or <code>null</code> if the choice
-     *          mode is set to {@link #CHOICE_MODE_NONE}.
+     * Returns the set of checked items in the list.
+     * <p>
+     * The result is only valid if the choice mode has not been set to {@link AbsListView#CHOICE_MODE_NONE}.
+     * </p>
+     * @return a {@link SparseBooleanArray} which will return <code>true</code> for each call to {@link SparseBooleanArray#get(int position)} where position is a checked position in the list and false otherwise, or <code>null</code> if the choice mode is set to {@link AbsListView#CHOICE_MODE_NONE}.
      */
     public SparseBooleanArray getCheckedItemPositions() {
-        if (mChoiceMode != CHOICE_MODE_NONE) {
+        if (mChoiceMode != AbsListView.CHOICE_MODE_NONE) {
             return mCheckStates;
         }
         return null;
     }
 
-    /**
-     * Clear any choices previously set
-     */
-    public void clearChoices() {
+    // Setters
+    @Override
+    public void setAdapter(Adapter adapter) {
         if (mCheckStates != null) {
             mCheckStates.clear();
         }
-        if (mCheckedIdStates != null) {
-            mCheckedIdStates.clear();
-        }
-        mCheckedItemCount = 0;
+        super.setAdapter(adapter);
     }
 
     /**
-     * Sets the checked state of the specified position. The is only valid if
-     * the choice mode has been set to {@link #CHOICE_MODE_SINGLE} or
-     * {@link #CHOICE_MODE_MULTIPLE}.
-     *
-     * @param position The item whose checked state is to be checked
-     * @param value The new checked state for the item
+     * Defines the choice behavior for the {@link RecyclerView}.
+     * <p>
+     * By default, {@link RecyclerView} do not have any choice behavior ({@link AbsListView#CHOICE_MODE_NONE}).
+     * By setting the choiceMode to {@link AbsListView#CHOICE_MODE_SINGLE}, the {@link RecyclerView} allows up to one item to be in a chose state.
+     * By setting the choiceMode to {@link AbsListView#CHOICE_MODE_MULTIPLE}, the {@link RecyclerView} allows any number of items to be chosen.
+     * </p>
+     * @param choiceMode one of {@link AbsListView#CHOICE_MODE_NONE}, {@link AbsListView#CHOICE_MODE_SINGLE}, or {@link AbsListView#CHOICE_MODE_MULTIPLE}.
+     * @see #getChoiceMode()
      */
-    public void setItemChecked(int position, boolean value) {
-        if (mChoiceMode == CHOICE_MODE_NONE) {
-            return;
-        }
-
-        // Start selection mode if needed. We don't need to if we're unchecking something.
-        if (value && mChoiceMode == CHOICE_MODE_MULTIPLE_MODAL && mChoiceActionMode == null) {
-            if (mMultiChoiceModeCallback == null ||
-                    !mMultiChoiceModeCallback.hasWrappedCallback()) {
-                throw new IllegalStateException("AbsListView: attempted to start selection mode " +
-                        "for CHOICE_MODE_MULTIPLE_MODAL but no choice mode callback was " +
-                        "supplied. Call setMultiChoiceModeListener to set a callback.");
-            }
-            mChoiceActionMode = startActionMode(mMultiChoiceModeCallback);
-        }
-
-        final boolean itemCheckChanged;
-        if (mChoiceMode == CHOICE_MODE_MULTIPLE || mChoiceMode == CHOICE_MODE_MULTIPLE_MODAL) {
-            boolean oldValue = mCheckStates.get(position);
-            mCheckStates.put(position, value);
-            if (mCheckedIdStates != null && mAdapter.hasStableIds()) {
-                if (value) {
-                    mCheckedIdStates.put(mAdapter.getItemId(position), position);
-                } else {
-                    mCheckedIdStates.delete(mAdapter.getItemId(position));
+    public void setChoiceMode(int choiceMode) {
+        if (choiceMode == AbsListView.CHOICE_MODE_NONE || choiceMode == AbsListView.CHOICE_MODE_SINGLE || choiceMode == AbsListView.CHOICE_MODE_MULTIPLE) {
+            mChoiceMode = choiceMode;
+            if (mChoiceMode != AbsListView.CHOICE_MODE_NONE) {
+                if (mCheckStates == null) {
+                    mCheckStates = new SparseBooleanArray(0);
                 }
             }
+        }
+    }
+
+    /**
+     * Sets the checked state of the specified position.
+     * <p>
+     * This is only valid if the choice mode has been set to {@link AbsListView#CHOICE_MODE_SINGLE} or {@link AbsListView#CHOICE_MODE_MULTIPLE}.
+     * </p>
+     * @param position the item whose checked state is to be checked.
+     * @param value the new checked state for the item.
+     */
+    public void setItemChecked(int position, boolean value) {
+        if (mChoiceMode == AbsListView.CHOICE_MODE_NONE) {
+            return;
+        }
+        final boolean itemCheckChanged;
+        if (mChoiceMode == AbsListView.CHOICE_MODE_MULTIPLE) {
+            boolean oldValue = mCheckStates.get(position);
+            mCheckStates.put(position, value);
             itemCheckChanged = oldValue != value;
             if (itemCheckChanged) {
                 if (value) {
@@ -224,82 +193,38 @@ public class ChoiceModeRecyclerView extends RecyclerView {
                     mCheckedItemCount--;
                 }
             }
-            if (mChoiceActionMode != null) {
-                final long id = mAdapter.getItemId(position);
-                mMultiChoiceModeCallback.onItemCheckedStateChanged(mChoiceActionMode,
-                        position, id, value);
-            }
         } else {
-            boolean updateIds = mCheckedIdStates != null && mAdapter.hasStableIds();
-            // Clear all values if we're checking something, or unchecking the currently
-            // selected item
             itemCheckChanged = isItemChecked(position) != value;
             if (value || isItemChecked(position)) {
                 mCheckStates.clear();
-                if (updateIds) {
-                    mCheckedIdStates.clear();
-                }
             }
-            // this may end up selecting the value we just cleared but this way
-            // we ensure length of mCheckStates is 1, a fact getCheckedItemPosition relies on
             if (value) {
                 mCheckStates.put(position, true);
-                if (updateIds) {
-                    mCheckedIdStates.put(mAdapter.getItemId(position), position);
-                }
                 mCheckedItemCount = 1;
             } else if (mCheckStates.size() == 0 || !mCheckStates.valueAt(0)) {
                 mCheckedItemCount = 0;
             }
         }
-
-        // Do not generate a data change while we are in the layout phase or data has not changed
-        if (!mInLayout && !mBlockLayoutRequests && itemCheckChanged) {
-            mDataChanged = true;
-            rememberSyncState();
-            requestLayout();
+        if (itemCheckChanged) {
+            findViewHolderForAdapterPosition(position).itemView.setActivated(value);
         }
     }
 
+    // Methods
     /**
-     * @see #setChoiceMode(int)
-     *
-     * @return The current choice mode
+     * Clear any choices previously set.
      */
-    public int getChoiceMode() {
-        return mChoiceMode;
-    }
-
-    /**
-     * Defines the choice behavior for the List. By default, Lists do not have any choice behavior
-     * ({@link #CHOICE_MODE_NONE}). By setting the choiceMode to {@link #CHOICE_MODE_SINGLE}, the
-     * List allows up to one item to  be in a chosen state. By setting the choiceMode to
-     * {@link #CHOICE_MODE_MULTIPLE}, the list allows any number of items to be chosen.
-     *
-     * @param choiceMode One of {@link #CHOICE_MODE_NONE}, {@link #CHOICE_MODE_SINGLE}, or
-     * {@link #CHOICE_MODE_MULTIPLE}
-     */
-    public void setChoiceMode(int choiceMode) {
-        mChoiceMode = choiceMode;
-        if (mChoiceActionMode != null) {
-            mChoiceActionMode.finish();
-            mChoiceActionMode = null;
+    public void clearChoices() {
+        if (mCheckStates != null) {
+            mCheckStates.clear();
         }
-        if (mChoiceMode != CHOICE_MODE_NONE) {
-            if (mCheckStates == null) {
-                mCheckStates = new SparseBooleanArray(0);
-            }
-            if (mCheckedIdStates == null && mAdapter != null && mAdapter.hasStableIds()) {
-                mCheckedIdStates = new LongSparseArray<Integer>(0);
-            }
-            // Modal multi-choice mode only has choices when the mode is active. Clear them.
-            if (mChoiceMode == CHOICE_MODE_MULTIPLE_MODAL) {
-                clearChoices();
-                setLongClickable(true);
-            }
+        for (int i = 0; i < getChildCount(); i++) {
+            getChildAt(i).setActivated(false);
         }
+        mCheckedItemCount = 0;
     }
-
+    
+    /*
     static class SavedState extends BaseSavedState {
         long selectedId;
         long firstId;
@@ -314,14 +239,14 @@ public class ChoiceModeRecyclerView extends RecyclerView {
 
         /**
          * Constructor called from {@link AbsListView#onSaveInstanceState()}
-         */
+         *//*
         SavedState(Parcelable superState) {
             super(superState);
         }
 
         /**
          * Constructor called from {@link #CREATOR}
-         */
+         *//*
         private SavedState(Parcel in) {
             super(in);
             selectedId = in.readLong();
@@ -398,7 +323,7 @@ public class ChoiceModeRecyclerView extends RecyclerView {
          * popups, but there don't seem to be any other useful hooks
          * that happen early enough to keep from getting complaints
          * about having leaked the window.
-         */
+         *//*
         dismissPopup();
 
         Parcelable superState = super.onSaveInstanceState();
@@ -538,84 +463,7 @@ public class ChoiceModeRecyclerView extends RecyclerView {
         requestLayout();
     }
 
-
-    // Setters
-    /**
-     * Defines the choice behavior for the {@link MultiChoiceRecyclerView}. By default, {@link MultiChoiceRecyclerView} does not have any choice behavior ({@code CHOICE_MODE_NONE}). By setting the choice mode to {@code CHOICE_MODE_MULTIPLE}, the {@link MultiChoiceRecyclerView} allows any number of items to be chosen.
-     * @param choiceMode either {@code CHOICE_MODE_NONE} or {@code CHOICE_MODE_MULTIPLE}.
-     */
-    public void setChoiceMode(int choiceMode) {
-        if (choiceMode == CHOICE_MODE_NONE || choiceMode == CHOICE_MODE_MULTIPLE) {
-            mChoiceMode = choiceMode;
-            if (mChoiceMode != CHOICE_MODE_NONE && mCheckStates == null) {
-                mCheckStates = new SparseBooleanArray(0);
-            }
-        }
-    }
-
-    /**
-     * Clears any choices previously set.
-     */
-    public void clearChoices() {
-        if (mCheckStates != null) {
-            mCheckStates.clear();
-        }
-        for (int i = 0; i < getChildCount(); i++) {
-            ViewCompat.setActivated(getChildAt(i), false);
-        }
-        mCheckedItemCount = 0;
-    }
-
-    /**
-     * Sets the checked state of the specified position. The is only valid if the choice mode has been set to {@code CHOICE_MODE_MULTIPLE}.
-     * @param view the view at the specified position.
-     * @param position the item whose checked state is to be checked.
-     * @param value the new checked state for the item.
-     */
-    public void setItemChecked(View view, int position, boolean value) {
-        if (mChoiceMode == CHOICE_MODE_NONE) {
-            return;
-        }
-        boolean oldValue = mCheckStates.get(position);
-        mCheckStates.put(position, value);
-        if (oldValue != value) {
-            if (value) {
-                mCheckedItemCount++;
-            } else {
-                mCheckedItemCount--;
-            }
-            ViewCompat.setActivated(view, value);
-        }
-    }
-
-    // Getters
-    /**
-     * Returns the number of items currently selected. This will only be valid if the choice mode is not {@code CHOICE_MODE_NONE} (default).
-     * @return the number of items currently selected.
-     */
-    public int getCheckedItemCount() {
-        return mCheckedItemCount;
-    }
-
-    /**
-     * Returns the checked state of the specified position. The result is only valid if the choice mode has been set to {@code CHOICE_MODE_MULTIPLE}.
-     * @param position the item whose checked state to return.
-     * @return the item's checked state or <b>false</b> if choice mode is invalid.
-     */
-    public boolean isItemChecked(int position) {
-        return mChoiceMode != CHOICE_MODE_NONE && mCheckStates != null && mCheckStates.get(position);
-    }
-
-    /**
-     * Returns the set of checked items in the {@link MultiChoiceRecyclerView}. The result is only valid if the choice mode has not been set to {@code CHOICE_MODE_NONE} (default).
-     * @return the set of checked items.
-     */
-    public SparseBooleanArray getCheckedItemPositions() {
-        if (mChoiceMode != CHOICE_MODE_NONE) {
-            return mCheckStates;
-        }
-        return null;
-    }
+    ==============================
 
     // State
     static class SavedState extends BaseSavedState {
@@ -674,5 +522,5 @@ public class ChoiceModeRecyclerView extends RecyclerView {
             mCheckStates = savedState.checkStates;
         }
         mCheckedItemCount = savedState.checkedItemCount;
-    }
+    }*/
 }
